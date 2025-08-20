@@ -9,7 +9,7 @@ from PyPDF2 import PdfFileWriter as pdfw
 
 
 
-#with Pagero(r"D:\1111111.pdf") as test_object:
+#with Pagero(r"D:\111111111111.pdf") as test_object:
 
 	#pprint(test_object)
 	# pdftmp = pdfw()
@@ -20,7 +20,7 @@ from PyPDF2 import PdfFileWriter as pdfw
 	# 	pdftmp.write(pdfout)
 
 
-# test_object_01 = Pagero(r"D:\1111111.pdf")
+# test_object_01 = Pagero(r"D:\111111111111.pdf")
 # #pprint(test_object_01.content)
 # pdfout = pdfw()
 # for v in test_object_01.content.values():
@@ -28,7 +28,7 @@ from PyPDF2 import PdfFileWriter as pdfw
 # with open(r"D:\ArrestedDevelopment\Papir\2.0\testout0.pdf", "wb") as pdftmp:
 # 	pdfout.write(pdftmp)
 
-# with Pagero(r"D:\1111111.pdf") as test_object_02:
+# with Pagero(r"D:\111111111111.pdf") as test_object_02:
 # 	pdfout0 = pdfw()
 # 	for v in test_object_02.values():
 # 		pdfout0.addPage(v)
