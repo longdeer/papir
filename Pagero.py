@@ -5,6 +5,7 @@ from Excero import PageroRangeException
 from Excero import PageroCheckPagesException
 from Excero import PageroPagesCountException
 from Excero import PageroIndexingException
+from Excero import PageroMapperException
 
 
 
@@ -49,10 +50,10 @@ class Pagero:
 		"""
 			Mapps pagero output to something.
 		"""
-		p,r = *pager,
+		p,d = *pager,
 
 
-		match r:
+		match d:
 
 			case "":
 				return pdfr.getPage(p)
@@ -65,6 +66,9 @@ class Pagero:
 
 			case "^":
 				return pdfr.getPage(p).rotateClockwise(180)
+
+			case _:
+				raise PageroMapperException(f"{p+1}{d}")
 
 
 
@@ -133,7 +137,7 @@ class Pagero:
 			# as split by group allways return the delimeter too, with empty string
 			# if nothing goes after delimeter in chunk.
 			s,d,e = Pagero.delip.split(raw_range)
-			#print(f"s: {s}, d: {d}, e: {e})")
+			print(f"s: {s}, d: {d}, e: {e}")
 
 
 			# Guard for absent start of range. Redirect to Excero.
@@ -142,7 +146,7 @@ class Pagero:
 
 			# Process single page with rotation.
 			if not e:
-				#return [ f"{s}{d}" ]
+				print([( int(s)-1,d )])
 				return [( int(s)-1,d )]
 
 

@@ -26,6 +26,7 @@ from logging 	import getLogger
 from logging 	import Formatter
 from logging 	import StreamHandler
 from sys 		import stdout
+from datetime 	import datetime
 
 
 
@@ -53,7 +54,11 @@ class Papiro:
 	def __init__(self, logger :Logger =None):
 		"""
 			Only logging for init
+			and dflag
 		"""
+		self.dflag = datetime.today().strftime("%d%m%Y-%H%M-%f")
+		
+
 		self.loggy = logger
 
 		if not self.loggy:
@@ -107,14 +112,23 @@ class Papiro:
 
 			Pagero.check_pages(pages)
 
-
-			pool1 = op_args[1]
-			pool2 = op_args[2:]
-
-
 			raw_pages = pages.split("/")
 			raw_count = len(raw_pages)
+
+			self.loggy.debug(f"raw_pages: {raw_pages}")
+
+
+			pool1 = op_args[1] or self.dflag
+			pool2 = op_args[2:]
+
+			if not pool2[0]:
+				pool2 = [ f"{self.dflag}-{r}" for r in range(raw_count) ]
+
 			pool2_len = len(pool2)
+
+
+			self.loggy.debug(f"pool1 {pool1}")
+			self.loggy.debug(f"pool2 {pool2}")
 
 
 			# Number of destination files must be either equal argument pages ranges or
@@ -147,7 +161,6 @@ class Papiro:
 		targets = [ self.verify_file_name(f) for f in split_args[2:] ]
 
 
-		#try:
 		with open(source, "rb") as tmpent:
 			for r,raw_range in enumerate(raw_pages):
 				
@@ -162,9 +175,6 @@ class Papiro:
 					
 					tmpout.write(pdfout)
 					self.loggy.info(f"splited {target}")
-		
-		#except Exception as e:
-		#	print(e)
 
 
 
@@ -179,7 +189,6 @@ class Papiro:
 		sources = [ self.verify_file_name(f, src=True) for f in merge_args[2:] ]
 
 
-		#try:
 		tmpout = PdfFileWriter()
 		
 		for f,file_name in enumerate(sources):
@@ -197,10 +206,6 @@ class Papiro:
 		
 
 		self.loggy.info(f"merged {target}")
-		
-		#except Excero as e:
-		#	print(e)
-
 
 
 

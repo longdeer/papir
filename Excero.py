@@ -7,6 +7,10 @@ class Excero(Exception):
 
 
 
+
+
+
+
 class PageroRangeException(Excero):
 	"""
 		Pagero proc_range Exception.
@@ -16,11 +20,8 @@ class PageroRangeException(Excero):
 		self.chunk = chunk
 		self.check = check
 
-
 	def __str__(self):
 		return f"Incorrect chunk \"{self.chunk}\", check {self.check}!"
-
-
 
 
 class PageroCheckPagesException(Excero):
@@ -30,11 +31,8 @@ class PageroCheckPagesException(Excero):
 	def __init__(self, raw_pages):
 		self.raw_pages = raw_pages
 
-
 	def __str__(self):
 		return f"Pages argument \"{self.raw_pages}\" is incorrect!"
-
-
 
 
 class PageroPagesCountException(Excero):
@@ -45,11 +43,8 @@ class PageroPagesCountException(Excero):
 		self.src_num = src_num
 		self.arg_num = arg_num
 
-
 	def __str__(self):
 		return f"Source file has {self.src_num} pages and doesn't fit to \"{self.arg_num}\" argument"
-
-
 
 
 class PageroIndexingException(Excero):
@@ -59,11 +54,8 @@ class PageroIndexingException(Excero):
 	def __init__(self, raw_pages):
 		self.raw_pages = raw_pages
 
-
 	def __str__(self):
 		return f"Argument \"{self.raw_pages}\" using 0-indexing, must be 1-indexing!"
-
-
 
 
 class PageroDublicateException(Excero):
@@ -72,6 +64,17 @@ class PageroDublicateException(Excero):
 	"""
 	pass # TO DO: Add check for different rotation of the same page within same chunk
 		 # as it leads to adding to writer the very last version of pages.
+
+
+class PageroMapperException(Excero):
+	"""
+		Pagero wrong delimeter match during mapping Exception.
+	"""
+	def __init__(self, delimeter):
+		self.delimeter = delimeter
+
+	def __str__(self):
+		return f"Inappropriate delimeter found in \"{self.delimeter}\" during mapping"
 
 
 
@@ -143,8 +146,8 @@ class PapiroOpsNoPagesArgumentsException(PapiroOpsBase):
 
 class PapiroArgumentsLengthException(PapiroOpsBase):
 	"""
-		Papiro split arguments length satisfy condition of 1 for all targets or
-		1 for every target verification Exception.
+		Papiro ops arguments length satisfy condition of 1 for all or
+		1 for every source/target verification Exception.
 	"""
 	def __str__(self):
-		return f"Pages argument \"{self._current_arguments}\" must be 1 for all or every target for split"
+		return f"Pages argument \"{self._current_arguments}\" must be 1 for all or every source/target"
