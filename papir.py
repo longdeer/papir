@@ -74,97 +74,105 @@ loggy.setLevel(10)
 
 
 
+main_commands = "-s", "--split", "-m", "--merge"
+aux_commands = "-g", "--grind", "-c", "--concat"
+pageros_flags = "-p", "--pages"
+targets_flags = "-t", "--target"
+valid_commands = *main_commands, *aux_commands
+valid_flags = *pageros_flags, *targets_flags
+sources = []
+targets = []
+pageros = "::"
+argi = 1
+
+
+
+
 
 
 
 
 try:
-	command = argv[1]
+	command = argv[argi]
+	argi += 1
+	loggy.debug(f"COMMAND: {command}")
+	aux = command in aux_commands
 
-	if command not in ( "-s", "--split", "-m", "--merge", "-g", "--grind", "-c", "--concat"):
-
-		loggy.critical(f"Command {command} not allowed")
-		raise ValueError
+except IndexError:
+	exit(print(usage))
 
 
-	nextarg = 2
-	sources = []
-	targets = []
+if command not in valid_commands:
 
-	while True:
-		try:
-			currentsrc = argv[nextarg]
-		
-			if currentsrc in ( "-p", "--pages", "-t", "--target" ):
-				if nextarg > 2:
-					
-					loggy.debug("All sources obtained")
-					break
-				else:
-					
-					loggy.critical("No sources obtained")
-					raise ValueError
+	loggy.critical(f"Command {command} not allowed")
+	exit(print(usage))
 
-			sources.append(currentsrc)
-			nextarg += 1
 
-		except IndexError:
+try:
+	currentsrc = argv[argi]
 
-			loggy.debug("Arguments end reached while obtaining sources")
+	while currentsrc:
+		if currentsrc in valid_flags:
+
+			sources[0] = sources[0]
+			loggy.debug("End obtaining sources")
 			break
 
+		sources.append(currentsrc)
+		argi += 1
+		currentsrc = argv[argi]
 
-	topageros = argv[nextarg]
-	loggy.debug(topageros)
-
-	match topageros:
-		case "-p" | "--pages":
-
-			nextarg += 1
-			pageros = argv[nextarg]
-			nextarg += 1
-			loggy.debug("Pageros flag found and pageros obtained")
-
-		case _:
-			
-			loggy.critical("No pageros flag provided")
-			raise ValueError
-
-
-	try:
-		totargets = argv[nextarg]
-		nextarg += 1
-
-		match totargets:
-			
-			case "-t" | "--target":
-				targets.extend(argv[nextarg:])
-
-				if not targets:
-
-					loggy.critical("No targets found after flag")
-					raise ValueError
-
-				loggy.debug("Targets successfully specified")
-
-			case _:
-
-				loggy.critical("Targets must be specified with \"-t\" or \"--target\"")
-				raise ValueError
-
-	except IndexError:
-
-		loggy.debug(f"No targets specified, None passed")
-		targets.append(None)
-
-
-	loggy.debug(f"COMMAND: {command}")
 	loggy.debug(f"SOURCES: {sources}")
-	loggy.debug(f"PAGEROS: {pageros}")
+
+except IndexError:
+	if not sources:
+
+		loggy.critical("No sources specified")
+		exit(print(usage))
+
+
+
+
+try:
+	nextarg = argv[argi]
+	argi += 1
+
+	if nextarg in pageros_flags:
+
+		pageros = argv[argi]
+		argi += 1
+		loggy.debug(f"PAGEROS: {pageros}")
+	else:
+		raise IndexError
+
+except IndexError:
+	if not aux:
+	
+		loggy.critical("Pageros must be specified")
+		exit(print(usage))
+
+
+try:
+	nextarg = argv[argi]
+	argi += 1
+
+	if nextarg in targets_flags:
+		targets.extend(argv[argi:])
+
+		if not targets:
+
+			loggy.critical("Target flag must be ommited or target file names must be specified")
+			exit(print(usage))
+	else:
+		loggy.critical("Target flag must be specified")
+		exit(print(usage))
+
 	loggy.debug(f"TARGETS: {targets}")
 
-except (IndexError, ValueError):
-	exit(print(usage))
+except IndexError:
+	
+	loggy.debug("No targets mode")
+	targets = [ "" ]
 
 
 
@@ -174,18 +182,39 @@ try:
 	match command:
 
 		case "-s" | "--split":
+			if len(sources) != 1:
+
+				loggy.critical("Must be single source for such operation")
+				exit(print(usage))
+			
 			papir.split(pageros, *sources, *targets)
 
 		case "-m" | "--merge":
+			if len(targets) != 1:
+
+				loggy.critical("Must be single target for such operation")
+				exit(print(usage))
+			
 			papir.merge(pageros, *targets, *sources)
 
-		case _:
+		case "-g" | "--grind":
+			if len(sources) != 1:
+
+				loggy.critical("Must be single source for such operation")
+				exit(print(usage))
 			
-			loggy.critical(f"Command {command} not allowed")
-			raise ValueError
+			papir.grind(pageros, *sources, *targets)
+
+		case "-c" | "--concat":
+			if len(targets) != 1:
+
+				loggy.critical("Must be single target for such operation")
+				exit(print(usage))
+			
+			papir.concat(pageros, *targets, *sources)
 
 except Excero as inner:
 	loggy.warning(inner)
 
-# except Exception as outer:
-# 	loggy.critical(outer)
+except Exception as outer:
+	loggy.critical(outer)
