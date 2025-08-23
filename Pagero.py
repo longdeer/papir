@@ -36,6 +36,8 @@ class Pagero:
 		"""
 			Prepare arguments raw string and do Pagero magic
 		"""
+		# print(raw_pages)
+		# print(raw_pdf.numPages)
 		Pagero.count_pages(raw_pages, raw_pdf.numPages)
 
 
@@ -170,6 +172,7 @@ class Pagero:
 			if not Pagero.pagep.match(raw_range):
 				raise PageroRangeException(raw_range, "symbols")
 
+			print([( int(raw_range)-1,"" )])
 			return [( int(raw_range)-1,"" )]
 
 

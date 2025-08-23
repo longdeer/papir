@@ -167,6 +167,39 @@ class Papiro:
 
 
 	@ops_handler
+	def grind(self, *grind_args :( str and [ str, ], str, ( str, ))) -> None:
+		"""
+			method that grinds lol
+		"""
+		source = self.verify_file_name(grind_args[1], src=True)
+		targets = [ self.verify_file_name(f) for f in grind_args[2:] ]
+
+
+		with open(source, "rb") as tmpent:
+			pdfent = PdfFileReader(tmpent, strict=False)
+			grind_len = pdfent.numPages
+			
+			if len(targets) != grind_len:
+				targets = ( self.verify_file_name(f"{self.dflag}-{r}") for r in range(grind_len) )
+
+			else:
+				targets = iter(targets)
+			
+			for r in range(grind_len):
+				
+				tmpout = PdfFileWriter()
+				tmpout.addPage(*Pagero.make_content(str(r+1), pdfent))
+				target = next(targets)
+
+				with open(target, "wb") as pdfout:
+					
+					tmpout.write(pdfout)
+					self.loggy.info(f"grinded {target}")
+
+
+
+
+	@ops_handler
 	def merge(self, *merge_args :( str and [ str, ], str, ( str, ))) -> None :
 		"""
 			method that merge lol
@@ -188,7 +221,35 @@ class Papiro:
 					tmpout.addPage(page)
 		
 				with open(target, "ab") as pdfout:
-					
+					tmpout.write(pdfout)
+		
+
+		self.loggy.info(f"merged {target}")
+
+
+
+
+	@ops_handler
+	def concat(self, *concat_args :( str and [ str, ], str, ( str, ))) -> None :
+		"""
+			method that concat lol
+		"""
+		target = self.verify_file_name(concat_args[1])
+		sources = [ self.verify_file_name(f, src=True) for f in concat_args[2:] ]
+
+
+		tmpout = PdfFileWriter()
+		
+		for f,file_name in enumerate(sources):
+			with open(file_name, "rb") as tmpent:
+				
+				pdfent = PdfFileReader(tmpent, strict=False)
+				raw_range = f"1:{pdfent.numPages}"
+
+				for page in Pagero.make_content(raw_range, pdfent):
+					tmpout.addPage(page)
+		
+				with open(target, "ab") as pdfout:
 					tmpout.write(pdfout)
 		
 

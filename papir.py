@@ -133,23 +133,23 @@ except IndexError:
 
 
 
-try:
-	nextarg = argv[argi]
-	argi += 1
-
-	if nextarg in pageros_flags:
-
-		pageros = argv[argi]
+if not aux:
+	try:
+		nextarg = argv[argi]
 		argi += 1
-		loggy.debug(f"PAGEROS: {pageros}")
-	else:
-		raise IndexError
 
-except IndexError:
-	if not aux:
-	
-		loggy.critical("Pageros must be specified")
-		exit(print(usage))
+		if nextarg in pageros_flags:
+
+			pageros = argv[argi]
+			argi += 1
+			loggy.debug(f"PAGEROS: {pageros}")
+		else:
+			raise IndexError
+
+	except IndexError:
+		
+			loggy.critical("Pageros must be specified")
+			exit(print(usage))
 
 
 try:
