@@ -27,6 +27,7 @@ class Pagero:
 	argsp = pmake("[\d\+\-:^/,]")
 	pagep = pmake("^\d+[\+\-\^]?$")
 	fullp = pmake("^[\d\+\-:^/,]+$")
+	auxdl = "::", "++", "--", "^^"
 
 
 
@@ -118,7 +119,6 @@ class Pagero:
 		for ci in range(len(raw_chunks)):
 
 			current_chunk = raw_chunks[ci]
-
 			yield from Pagero.proc_ranges(current_chunk)
 
 
@@ -139,7 +139,6 @@ class Pagero:
 			# as split by group allways return the delimeter too, with empty string
 			# if nothing goes after delimeter in chunk.
 			s,d,e = Pagero.delip.split(raw_range)
-			print(f"s: {s}, d: {d}, e: {e}")
 
 
 			# Guard for absent start of range. Redirect to Excero.
@@ -172,7 +171,6 @@ class Pagero:
 			if not Pagero.pagep.match(raw_range):
 				raise PageroRangeException(raw_range, "symbols")
 
-			print([( int(raw_range)-1,"" )])
 			return [( int(raw_range)-1,"" )]
 
 
@@ -181,64 +179,3 @@ class Pagero:
 
 
 
-
-if __name__ == "__main__":
-	print("\n\nStart new test\n\n")
-	
-	print("\n\nproc_pages regular args tests")
-	print(list(Pagero.make_content("1,2,3", "MNL-1785.pdf")))
-	print(list(Pagero.make_content("4:7", "MNL-1785.pdf")))
-	print(list(Pagero.make_content("18-15", "MNL-1785.pdf")))
-	print(list(Pagero.make_content("4^4", "MNL-1785.pdf")))
-	print(list(Pagero.make_content("10+11", "MNL-1785.pdf")))
-	print(list(Pagero.make_content("1,2+,5^4", "MNL-1785.pdf")))
-	print(list(Pagero.make_content("3-,3+,3^,5:5", "MNL-1785.pdf")))
-	print(list(Pagero.make_content("4^,5:7", "MNL-1785.pdf")))
-
-
-	# print("\n\nproc_pages broken args tests")
-	# try:
-	# 	print(list(Pagero.make_content("1,,2")))
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	print(list(Pagero.make_content("4 : 7     ")))
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	print(list(Pagero.make_content("18,-15-16,")))
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	print(list(Pagero.make_content("4 5")))
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	print(list(Pagero.make_content("10++11")))
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	print(list(Pagero.make_content("1,2+ ,- ,5^4")))
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	print(list(Pagero.make_content("3_,3=,3$,%;%")))
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	print(list(Pagero.make_content("4^5:7")))
-	# except Excero as e:
-	# 	print(e)
-
-
-	#print(id(tester1.argsp))
-	#print(id(tester1.pagep))
-	#print(id(tester10.argsp))
-	#print(id(tester10.pagep))

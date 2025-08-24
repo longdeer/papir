@@ -151,3 +151,11 @@ class PapiroArgumentsLengthException(PapiroOpsBase):
 	"""
 	def __str__(self):
 		return f"Pages argument \"{self._current_arguments}\" must be 1 for all or every source/target"
+
+
+class PapiroRotationException(PapiroOpsBase):
+	"""
+		Papiro concatenation with rotation arguments Exception.
+	"""
+	def __str__(self):
+		return f"Rotation arguments \"{self._current_arguments}\" is not valid"

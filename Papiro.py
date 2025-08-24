@@ -8,6 +8,7 @@ from Excero 	import PapiroNoSourceException
 from Excero 	import PapiroZeroSizeSourceException
 from Excero 	import PapiroArgumentsLengthException
 from Excero 	import PapiroOpsNoPagesArgumentsException
+from Excero 	import PapiroRotationException
 from logging 	import Logger
 from logging 	import getLogger
 from logging 	import Formatter
@@ -94,12 +95,19 @@ class Papiro:
 			"""
 			pages = op_args[0]
 
-			if not pages:
+			if pages is None:
+				
+				self.loggy.debug("aux mode")
+				raw_pages = [ None ]
+			
+			elif not pages:
 				raise PapiroOpsNoPagesArgumentsException(arguments=pages)
 
-			Pagero.check_pages(pages)
+			else:
+				Pagero.check_pages(pages)
+				raw_pages = pages.split("/")
 
-			raw_pages = pages.split("/")
+
 			raw_count = len(raw_pages)
 
 			self.loggy.debug(f"raw_pages: {raw_pages}")
@@ -109,7 +117,9 @@ class Papiro:
 			pool2 = op_args[2:]
 
 			if not pool2[0]:
-				pool2 = [ f"{self.dflag}-{r}" for r in range(raw_count) ]
+
+				self.loggy.debug("rebuilding pool2")
+				pool2 = [ f"{self.dflag}-{r+1}" for r in range(raw_count) ]
 
 			pool2_len = len(pool2)
 
@@ -167,39 +177,6 @@ class Papiro:
 
 
 	@ops_handler
-	def grind(self, *grind_args :( str and [ str, ], str, ( str, ))) -> None:
-		"""
-			method that grinds lol
-		"""
-		source = self.verify_file_name(grind_args[1], src=True)
-		targets = [ self.verify_file_name(f) for f in grind_args[2:] ]
-
-
-		with open(source, "rb") as tmpent:
-			pdfent = PdfFileReader(tmpent, strict=False)
-			grind_len = pdfent.numPages
-			
-			if len(targets) != grind_len:
-				targets = ( self.verify_file_name(f"{self.dflag}-{r}") for r in range(grind_len) )
-
-			else:
-				targets = iter(targets)
-			
-			for r in range(grind_len):
-				
-				tmpout = PdfFileWriter()
-				tmpout.addPage(*Pagero.make_content(str(r+1), pdfent))
-				target = next(targets)
-
-				with open(target, "wb") as pdfout:
-					
-					tmpout.write(pdfout)
-					self.loggy.info(f"grinded {target}")
-
-
-
-
-	@ops_handler
 	def merge(self, *merge_args :( str and [ str, ], str, ( str, ))) -> None :
 		"""
 			method that merge lol
@@ -230,10 +207,65 @@ class Papiro:
 
 
 	@ops_handler
+	def grind(self, *grind_args :( str and [ str, ], str, ( str, ))) -> None:
+		"""
+			method that grinds lol
+		"""
+		raw_pages = grind_args[0]
+		self.loggy.debug(f"current raw_pages: {raw_pages}")
+		source = self.verify_file_name(grind_args[1], src=True)
+		targets = [ self.verify_file_name(f) for f in grind_args[2:] ]
+
+
+		with open(source, "rb") as tmpent:
+			pdfent = PdfFileReader(tmpent, strict=False)
+			
+			if raw_pages[0] is None:
+				
+				raw_count = pdfent.numPages
+				raw_pages = Pagero.make_content(f"1:{raw_count}", pdfent)
+
+			else:
+				if raw_pages[0] in Pagero.auxdl:
+
+					raw_count = pdfent.numPages
+					raw_pages = Pagero.make_content(f"1{raw_pages[0][0]}{raw_count}", pdfent)
+				
+				else:
+					raw_count = len(raw_pages)
+					raw_pages = Pagero.make_content(raw_pages[0], pdfent)
+
+
+			self.loggy.debug(f"current count: {raw_count}")
+			self.loggy.debug(f"current pages: {raw_pages}")
+			
+
+			for r,pager in enumerate(raw_pages):
+				
+				tmpout = PdfFileWriter()
+				tmpout.addPage(pager)
+				
+				try:
+					target = targets[r]
+
+				except IndexError:
+					target = self.verify_file_name(f"{self.dflag}-{r+1}")
+
+				with open(target, "wb") as pdfout:
+					
+					tmpout.write(pdfout)
+					self.loggy.info(f"grinded {target}")
+
+
+
+
+	@ops_handler
 	def concat(self, *concat_args :( str and [ str, ], str, ( str, ))) -> None :
 		"""
 			method that concat lol
 		"""
+		raw_pages = concat_args[0]
+		self.loggy.debug(f"current raw_pages: {raw_pages}")
 		target = self.verify_file_name(concat_args[1])
 		sources = [ self.verify_file_name(f, src=True) for f in concat_args[2:] ]
 
@@ -244,7 +276,16 @@ class Papiro:
 			with open(file_name, "rb") as tmpent:
 				
 				pdfent = PdfFileReader(tmpent, strict=False)
-				raw_range = f"1:{pdfent.numPages}"
+
+				try:
+					if raw_pages[f] in Pagero.auxdl:
+						raw_range = f"1{raw_pages[f][0]}{pdfent.numPages}"
+
+					else:
+						raise PapiroRotationException(raw_pages)
+				
+				except IndexError:
+					raw_range = f"1:{pdfent.numPages}"
 
 				for page in Pagero.make_content(raw_range, pdfent):
 					tmpout.addPage(page)
@@ -261,85 +302,3 @@ class Papiro:
 
 
 
-
-if __name__ == "__main__":
-
-	# def test_pagero_make_content(test_string :str, count :int) -> list:
-
-	# 	with open("MNL-1785.pdf", "rb") as tmp_pdfent:
-			
-	# 		pdfent = PdfFileReader(tmp_pdfent)
-	# 		pdfout = PdfFileWriter()
-		
-	# 		for i in Pagero.make_content(test_string, pdfent):
-	# 			pdfout.addPage(i)
-			
-	# 		with open(f"test_output_{count}.pdf", "wb") as tmp_pdfout:
-	# 			pdfout.write(tmp_pdfout)
-
-
-
-
-	#test_pagero_make_content("1,2,3", 1)
-	#test_pagero_make_content("4:7", 2)
-	#test_pagero_make_content("18-15", 3)
-	#test_pagero_make_content("4^4", 4)
-	#test_pagero_make_content("10+11", 5)
-	#test_pagero_make_content("1,2+,5^4", 6)
-	
-	# test_pagero_make_content("3-,3+,3^,5:5", 7)
-	
-	#test_pagero_make_content("4^,5:7", 8)
-
-
-
-	
-	# print("\n\nproc_pages broken args tests")
-	# try:
-	# 	test_pagero_make_content("1,,2", 1)
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	test_pagero_make_content("4 : 7     ", 2)
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	test_pagero_make_content("18,-15-16,", 3)
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	test_pagero_make_content("4 5", 4)
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	test_pagero_make_content("10++11", 5)
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	test_pagero_make_content("1,2+ ,- ,5^4", 6)
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	test_pagero_make_content("3_,3=,3$,%;%", 7)
-	# except Excero as e:
-	# 	print(e)
-	
-	# try:
-	# 	test_pagero_make_content("4^5:7", 8)
-	# except Excero as e:
-	# 	print(e)
-
-
-
-
-	#test1 = Papiro("MNL-1785", "MNL-1785 (copy)")
-	test1 = Papiro()
-	test1.split("1:2,3+/4-5/6^7", "MNL-1785", "MNL-1785+", "MNL-1785++", "MNL-1785+++")
-	test1.merge("1:2,3-/1+2/1^2", "MNL-1785-", "MNL-1785+", "MNL-1785++", "MNL-1785+++")
-	#test2 = Papiro("MNL-1785")
