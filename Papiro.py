@@ -72,6 +72,9 @@ class Papiro:
 			for that file.
 		"""
 		if not self.valid_name_pattern.match(file_path):
+			if file_path.endswith("."):
+
+				return self.verify_file_name(file_path + "pdf", src)
 			return self.verify_file_name(file_path + ".pdf", src)
 
 
@@ -277,15 +280,16 @@ class Papiro:
 				
 				pdfent = PdfFileReader(tmpent, strict=False)
 
-				try:
-					if raw_pages[f] in Pagero.auxdl:
-						raw_range = f"1{raw_pages[f][0]}{pdfent.numPages}"
 
-					else:
-						raise PapiroRotationException(raw_pages)
-				
-				except IndexError:
+				if raw_pages[f] in Pagero.auxdl:
+					raw_range = f"1{raw_pages[f][0]}{pdfent.numPages}"
+
+				elif raw_pages[f] is None:
 					raw_range = f"1:{pdfent.numPages}"
+
+				else:
+					raise PapiroRotationException(raw_pages)
+
 
 				for page in Pagero.make_content(raw_range, pdfent):
 					tmpout.addPage(page)

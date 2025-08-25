@@ -21,11 +21,13 @@ Usage:
 papir COMMAND SOURCE(s) -p|--pages PAGEROS [-t|--target DESTINATION(s)]
 
 COMMAND:
-\t-s --split  - split one SOURCE pdf file to DESTINATIONS files
-\t-m --merge  - merge all SOURCES files to one DESTINATION file
-\t-g --grind  - grind SOURCE file pages in separate DESTINATIONS files
-\t-c --concat - concatenate all SOURCES files to one DESTINATION file,
-				or rotate all pages in single SOURCE file
+\t-s, --split  - split one SOURCE pdf file to DESTINATIONS files
+\t-m, --merge  - merge all SOURCES files to one DESTINATION file
+\t-g, --grind  - grind SOURCE file pages in separate DESTINATIONS files
+\t-c, --concat - concatenate all SOURCES files to one DESTINATION file,
+				 or rotate all pages in single SOURCE file
+\t-p, --pages  - start of operation's pages argument
+\t-t, --target - start of target file names arguments
 
 SOURCE(s):
 File names may be absolute or relative
@@ -35,8 +37,6 @@ File names may be absolute or relative
 
 PAGEROS:
 Synopsis N[+-^:]N[,/M[+-^:]]
-\t-p     - start of operation's pages argument
-\t--pages
 \tN      - take page N from source file
 \tN+     - rotate page right (90 degrees clockwise)
 \tN-     - rotate page left (90 degrees counter clockwise)
@@ -51,8 +51,6 @@ Synopsis N[+-^:]N[,/M[+-^:]]
 
 DESTINATION(s):
 File names may be absolute or relative
-\t-t                          - start of target file names arguments
-\t--target
 \tsome[.pdf]                  - merge/concat every files to one file
 \tsome1[.pdf] some2[.pdf] ... - split/grind only one file at a time
 
@@ -79,7 +77,7 @@ Examples:
 \tpapir -c /etc/passwd.pdf -p ^^ -target /root/nevermind
 \t\toutcome: /root/nevermind.pdf file with all pages from file /etc/passwd.pdf upside down
 
-version 1.7 10/11/2022
+version 1.7 18/11/2022
 author: lngd
 lngdeer@gmail.com
 """
@@ -87,6 +85,7 @@ lngdeer@gmail.com
 
 
 
+# Initializing logger
 loggy = getLogger("papir")
 
 loggy_formatter = Formatter("%(levelname)s: %(message)s")
@@ -94,20 +93,32 @@ loggy_handler = StreamHandler(stdout)
 loggy_handler.setFormatter(loggy_formatter)
 
 loggy.addHandler(loggy_handler)
-loggy.setLevel(20)
+loggy.setLevel(10)
 
 
 
 
+# Initializing local consts
+# Set of available commands and parameters flags:
 main_commands = "-s", "--split", "-m", "--merge"
 aux_commands = "-g", "--grind", "-c", "--concat"
 pageros_flags = "-p", "--pages"
 targets_flags = "-t", "--target"
 valid_commands = *main_commands, *aux_commands
 valid_flags = *pageros_flags, *targets_flags
+# Source and destination file paths lists:
 sources = []
 targets = []
+# Defaultable option to contain Pageros make_content arguments.
+# Pagero stands for pages & rotations, which means such and an
+# argument for papir will be passed to propriate handlers. Those
+# handlers will validate Pagero syntax and throw Exceros (papir
+# operational exceptions). For cases like --grind or --concat
+# Pageros may not be provided, and for this purpose pageros
+# defaulted to None, that allow handlers to distinguish invalid
+# arguments and special case.
 pageros = None
+# Arguments parse index.
 argi = 1
 
 
@@ -123,6 +134,7 @@ try:
 	loggy.debug(f"COMMAND: {command}")
 	aux = command in aux_commands
 
+# Catching the case arguments to papiro was not provided.
 except IndexError:
 	exit(print(usage))
 
